@@ -11,5 +11,8 @@ export * from "./archive/localHeader.js";
 export * from "./archive/indexer.js";
 export * from "./archive/streamUtils.js";
 export * from "./archive/inflater.js";
+export * from "./chunker/table.js";
+export * from "./chunker/fingerprint.js";
+export * from "./chunker/fastcdc.js";
 
 export const VERSION = "0.1.0";
