@@ -12,7 +12,8 @@
     "build": "tsc",
     "typecheck": "tsc --project tsconfig.test.json --noEmit",
     "test": "vitest run",
-    "test:compliance": "vitest run .agents/tests/compliance.test.ts"
+    "test:compliance": "vitest run .agents/tests/compliance.test.ts",
+    "demo": "npx -y serve docs"
   },
   "keywords": [
     "delta-compression",
