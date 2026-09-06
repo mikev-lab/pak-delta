@@ -14,5 +14,11 @@ export * from "./archive/inflater.js";
 export * from "./chunker/table.js";
 export * from "./chunker/fingerprint.js";
 export * from "./chunker/fastcdc.js";
+export * from "./diff/errors.js";
+export * from "./diff/leb128.js";
+export * from "./diff/merkleIndex.js";
+export * from "./diff/subChunkDelta.js";
+export * from "./diff/matcher.js";
+export * from "./diff/manifest.js";
 
 export const VERSION = "0.1.0";

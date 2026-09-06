@@ -49,4 +49,5 @@ export interface DeltaRecipeManifest {
   targetTotalUncompressedBytes: number;
   entries: RecipeEntryDescriptor[];
   rawPayloadSize: number;
+  rawPayloadPool?: Uint8Array;
 }

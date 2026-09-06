@@ -83,3 +83,14 @@ export async function collectChunks(
   }
   return result;
 }
+
+/**
+ * Compresses data using native Web Standards CompressionStream("deflate-raw").
+ */
+export async function deflateRaw(data: Uint8Array): Promise<Uint8Array> {
+  const cs = new CompressionStream("deflate-raw");
+  const writer = cs.writable.getWriter();
+  writer.write(data);
+  writer.close();
+  return collectChunks(readableStreamToAsyncIterable(cs.readable));
+}
