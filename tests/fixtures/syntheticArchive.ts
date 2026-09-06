@@ -273,3 +273,109 @@ export function generateSyntheticPayload(size: number, seed: number): Uint8Array
   }
   return data;
 }
+
+export type SyntheticAssetType = "texture" | "audio" | "bytecode" | "config";
+
+/**
+ * Creates procedurally generated game asset payloads according to realistic asset entropy models.
+ */
+export function createProceduralAsset(
+  type: SyntheticAssetType,
+  size: number,
+  seed: number
+): Uint8Array {
+  const rng = mulberry32(seed);
+  const buffer = new Uint8Array(size);
+
+  if (type === "texture") {
+    // 2D spatial gradients simulating texture / normal map color channels
+    for (let i = 0; i < size; i++) {
+      const x = i % 256;
+      const y = Math.floor(i / 256) % 256;
+      buffer[i] = (x ^ y ^ Math.floor(rng() * 16)) & 0xFF;
+    }
+  } else if (type === "audio") {
+    // 16-bit PCM waveform sinusoidal simulation
+    for (let i = 0; i < size; i += 2) {
+      const sample = Math.sin(i * 0.05) * 30000;
+      const intSample = Math.floor(sample) & 0xFFFF;
+      buffer[i] = intSample & 0xFF;
+      if (i + 1 < size) {
+        buffer[i + 1] = (intSample >>> 8) & 0xFF;
+      }
+    }
+  } else if (type === "bytecode") {
+    // Virtual machine bytecode: opcodes followed by variable operands
+    let i = 0;
+    while (i < size) {
+      const opcode = Math.floor(rng() * 32);
+      buffer[i++] = opcode;
+      const operandLen = Math.min(size - i, Math.floor(rng() * 4));
+      for (let op = 0; op < operandLen; op++) {
+        buffer[i++] = Math.floor(rng() * 256);
+      }
+    }
+  } else if (type === "config") {
+    // Structured text tokens
+    const textPattern = `{"entity_id": ${seed}, "health": 100, "name": "HeroUnit_${seed}", "active": true}\n`;
+    const patternBytes = new TextEncoder().encode(textPattern);
+    for (let i = 0; i < size; i++) {
+      buffer[i] = patternBytes[i % patternBytes.length];
+    }
+  }
+
+  return buffer;
+}
+
+export interface SyntheticMutation {
+  type: "modify" | "insert" | "delete";
+  offset: number;
+  length: number;
+  replacementBytes?: Uint8Array;
+}
+
+/**
+ * Applies a deterministic mutation (modification, insertion, or deletion) onto an asset buffer.
+ */
+export function applyMutation(data: Uint8Array, mutation: SyntheticMutation): Uint8Array {
+  const { type, offset, length, replacementBytes } = mutation;
+
+  if (type === "modify") {
+    const result = new Uint8Array(data);
+    const end = Math.min(offset + length, data.length);
+    for (let i = offset; i < end; i++) {
+      if (replacementBytes && (i - offset) < replacementBytes.length) {
+        result[i] = replacementBytes[i - offset];
+      } else {
+        result[i] = (result[i] ^ 0xFF) & 0xFF;
+      }
+    }
+    return result;
+  }
+
+  if (type === "insert") {
+    const insertLen = replacementBytes ? replacementBytes.length : length;
+    const result = new Uint8Array(data.length + insertLen);
+    result.set(data.subarray(0, offset), 0);
+    if (replacementBytes) {
+      result.set(replacementBytes, offset);
+    } else {
+      for (let i = 0; i < insertLen; i++) {
+        result[offset + i] = 0xAA;
+      }
+    }
+    result.set(data.subarray(offset), offset + insertLen);
+    return result;
+  }
+
+  if (type === "delete") {
+    const result = new Uint8Array(Math.max(0, data.length - length));
+    result.set(data.subarray(0, offset), 0);
+    if (offset + length < data.length) {
+      result.set(data.subarray(offset + length), offset);
+    }
+    return result;
+  }
+
+  return data;
+}

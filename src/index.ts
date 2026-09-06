@@ -25,5 +25,6 @@ export * from "./repack/crc32.js";
 export * from "./repack/compressor.js";
 export * from "./repack/writer.js";
 export * from "./repack/assembler.js";
+export * from "./engine.js";
 
 export const VERSION = "0.1.0";

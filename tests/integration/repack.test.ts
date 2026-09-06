@@ -128,6 +128,7 @@ describe("Deterministic Repack & Client Reconstitution Pipeline (Integration)", 
     const manifest = deserializeManifest(binary);
 
     const testDir = join(process.cwd(), "scratch");
+    await fs.mkdir(testDir, { recursive: true });
     const targetFilePath = join(testDir, "test_reconstituted.pak");
 
     await reconstituteArchiveToFile(sourceReader, manifest, targetFilePath);

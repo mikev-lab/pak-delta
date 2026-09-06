@@ -6,6 +6,7 @@
 
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
+import { dirname } from "node:path";
 import type { DeltaRecipeManifest, ArchiveEntrySlice } from "../types.js";
 import type { IBinaryReader } from "../archive/binaryReader.js";
 import { indexArchive } from "../archive/indexer.js";
@@ -275,7 +276,11 @@ export async function reconstituteArchiveToFile(
   manifest: DeltaRecipeManifest,
   targetPath: string
 ): Promise<void> {
-  const tmpPath = `${targetPath}.pak.tmp`;
+  const dir = dirname(targetPath);
+  if (dir && dir !== ".") {
+    await fs.mkdir(dir, { recursive: true });
+  }
+  const tmpPath = `${targetPath}.tmp`;
 
   try {
     const bytes = await reconstituteArchive(sourceReader, manifest);
