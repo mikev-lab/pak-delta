@@ -88,19 +88,19 @@ The test suite includes dedicated automated test suites for all 13 empirical edg
 
 | Edge Case Test | Test Identifier | Empirical Validation Target |
 | :--- | :--- | :--- |
-| **The Entropy Cascade** | `EXP-01` | Assert 1-byte edit scrambles $> 95\%$ downstream compressed bytes |
-| **FastCDC Boundary Invariance** | `EXP-02` | Assert 17-byte insertion maintains $> 99\%$ deduplication (vs $< 10\%$ fixed) |
+| **The Entropy Cascade** | `EXP-01` | Assert 1-byte edit scrambles > 95% downstream compressed bytes |
+| **FastCDC Boundary Invariance** | `EXP-02` | Assert 17-byte insertion maintains > 99% deduplication (vs < 10% fixed) |
 | **Native CompressionStream Parity** | `EXP-03` | Assert 100% deterministic bitstream match with Node/zlib Level 6 |
 | **Encoder Divergence and Dual-Mode** | `EXP-04` | Assert Level 6 vs Level 9 bit divergence detected and routed to Bit-Preserving Mode |
 | **Pareto Frontier Optimization** | `EXP-05` | Assert 4 KB to 8 KB nominal chunking yields lowest total net patch size |
-| **Sub-Chunk Span Delta Compression** | `EXP-06` | Assert localized chunk edit reduces chunk payload by $> 99\%$ |
-| **Global Merkle Deduplication** | `EXP-07` | Assert renamed and moved files achieve $> 99\%$ deduplication |
-| **Gear Hash Line-Rate Throughput** | `EXP-08` | Assert pure TypeScript gear hash exceeds $500\text{ MB/sec}$ |
+| **Sub-Chunk Span Delta Compression** | `EXP-06` | Assert localized chunk edit reduces chunk payload by > 99% |
+| **Global Merkle Deduplication** | `EXP-07` | Assert renamed and moved files achieve > 99% deduplication |
+| **Gear Hash Line-Rate Throughput** | `EXP-08` | Assert pure TypeScript gear hash exceeds 500 MB/sec |
 | **Pathological Input Clamping** | `EXP-09` | Assert repeating zeroes, ones, and alternating patterns clamp safely |
 | **ZIP Streaming Data Descriptors** | `EXP-10` | Assert archives with `FLAG_0x0008` parse accurately via Central Directory |
 | **Unreal DMA Sector Alignment** | `EXP-11` | Assert 4096-byte padding is isolated and reproduced byte-for-byte |
-| **LEB128 Opcode Serialization** | `EXP-12` | Assert uLEB128 encoding delivers $> 75\%$ metadata reduction |
-| **Bounded Streaming Memory** | `EXP-13` | Assert 50 MB+ workload retains heap delta $< 35\text{ MB}$ and peak $< 64\text{ MB}$ |
+| **LEB128 Opcode Serialization** | `EXP-12` | Assert uLEB128 encoding delivers > 75% metadata reduction |
+| **Bounded Streaming Memory** | `EXP-13` | Assert 50 MB+ workload retains heap delta < 35 MB and peak < 64 MB |
 
 ---
 

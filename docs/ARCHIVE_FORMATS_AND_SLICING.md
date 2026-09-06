@@ -45,8 +45,8 @@ The EOCD record is located at the very end of the archive and acts as the bootst
 | 10 | Total Entries | 2 bytes | Total number of CD records |
 | 12 | Central Directory Size | 4 bytes | Byte length of the entire Central Directory |
 | 16 | Central Directory Offset | 4 bytes | Offset of start of Central Directory relative to archive start |
-| 20 | Archive Comment Length | 2 bytes | Length of variable comment $C$ (0 to 65,535 bytes) |
-| 22 | Archive Comment | $C$ bytes | Optional trailing comment bytes |
+| 20 | Archive Comment Length | 2 bytes | Length of variable comment `C` (0 to 65,535 bytes) |
+| 22 | Archive Comment | `C` bytes | Optional trailing comment bytes |
 
 #### Back-to-Front Search Algorithm
 Because an archive may contain an arbitrary comment up to 65,535 bytes, the slicer cannot assume the EOCD starts at `fileSize - 22`.
@@ -70,14 +70,14 @@ Each asset in the container has a 46-byte fixed header in the Central Directory:
 | 16 | CRC32 | 4 bytes | IEEE 802.3 uncompressed checksum |
 | 20 | Compressed Size | 4 bytes | Compressed payload length in bytes |
 | 24 | Uncompressed Size | 4 bytes | Uncompressed payload length in bytes |
-| 28 | Filename Length ($N$) | 2 bytes | Length of filename string |
-| 30 | Extra Field Length ($M$) | 2 bytes | Length of extra metadata field |
-| 32 | Comment Length ($K$) | 2 bytes | Length of file comment |
+| 28 | Filename Length (`N`) | 2 bytes | Length of filename string |
+| 30 | Extra Field Length (`M`) | 2 bytes | Length of extra metadata field |
+| 32 | Comment Length (`K`) | 2 bytes | Length of file comment |
 | 34 | Disk Number Start | 2 bytes | Disk where file starts |
 | 36 | Internal Attributes | 2 bytes | File attributes |
 | 38 | External Attributes | 4 bytes | OS-specific permissions (POSIX / Windows) |
 | 42 | Local Header Offset | 4 bytes | Byte offset of Local File Header from start of archive |
-| 46 | Variable Fields | $N+M+K$ | Filename, Extra Field, Comment |
+| 46 | Variable Fields | `N + M + K` | Filename, Extra Field, Comment |
 
 ### 2.3 Local File Header (LFH)
 Preceding each compressed payload is the 30-byte Local File Header:
@@ -92,14 +92,16 @@ Preceding each compressed payload is the 30-byte Local File Header:
 | 14 | CRC32 | 4 bytes | Uncompressed CRC32 (or 0 if Bit 3 set) |
 | 18 | Compressed Size | 4 bytes | Compressed size (or 0 if Bit 3 set) |
 | 22 | Uncompressed Size | 4 bytes | Uncompressed size (or 0 if Bit 3 set) |
-| 26 | Filename Length ($N$) | 2 bytes | Length of filename |
-| 28 | Extra Field Length ($M$) | 2 bytes | Length of extra field |
-| 30 | Variable Fields | $N+M$ | Filename, Extra Field |
-| $30+N+M$ | **Payload Bytes** | Variable | Raw compressed or stored payload |
+| 26 | Filename Length (`N`) | 2 bytes | Length of filename |
+| 28 | Extra Field Length (`M`) | 2 bytes | Length of extra field |
+| 30 | Variable Fields | `N + M` | Filename, Extra Field |
+| `30 + N + M` | **Payload Bytes** | Variable | Raw compressed or stored payload |
 
 #### Payload Offset Formula
 The payload data start offset is strictly calculated as:
-$$\text{dataOffset} = \text{localHeaderOffset} + 30 + N + M$$
+```text
+dataOffset = localHeaderOffset + 30 + N + M
+```
 
 ---
 
@@ -117,17 +119,23 @@ When tools (e.g. UnrealPak streaming output, `zip -`) write archives to pipes or
 
 ### Edge Case 2: Unreal Engine DMA Sector Alignment Padding
 Unreal Engine `.pak` files align file payloads to 4,096-byte (or 64 KB) sector boundaries to facilitate Direct Memory Access (DMA) streaming directly from NVMe SSDs to GPU memory:
-- If an entry ends at offset 5,200, the packaging tool injects 2,992 zero-bytes to align the next Local File Header to offset 8,192 ($2 \times 4096$).
+- If an entry ends at offset 5,200, the packaging tool injects 2,992 zero-bytes to align the next Local File Header to offset 8,192 (2 * 4096).
 - If padding bytes are treated as file contents, chunk boundaries misalign and delta compression ratios collapse.
 
 **Slicer Strategy:**
 1. The slicer sorts Central Directory entries by `localHeaderOffset`.
-2. For each entry $i$:
-   $$\text{entryEndOffset} = \text{dataOffset}_i + \text{compressedSize}_i + (\text{hasDataDescriptor}_i ? 16 : 0)$$
-3. If entry $i+1$ exists:
-   $$\text{alignmentPadding}_i = \text{localHeaderOffset}_{i+1} - \text{entryEndOffset}$$
-   If entry $i$ is the last entry before the Central Directory:
-   $$\text{alignmentPadding}_i = \text{centralDirectoryOffset} - \text{entryEndOffset}$$
+2. For each entry `i`:
+   ```text
+   entryEndOffset = dataOffset[i] + compressedSize[i] + (hasDataDescriptor[i] ? 16 : 0)
+   ```
+3. If entry `i + 1` exists:
+   ```text
+   alignmentPadding[i] = localHeaderOffset[i + 1] - entryEndOffset
+   ```
+   If entry `i` is the last entry before the Central Directory:
+   ```text
+   alignmentPadding[i] = centralDirectoryOffset - entryEndOffset
+   ```
 4. The padding length is isolated and recorded in the slice descriptor.
 5. During reconstitution, the assembler emits exact zero-padding bytes, preserving 100% sector alignment.
 

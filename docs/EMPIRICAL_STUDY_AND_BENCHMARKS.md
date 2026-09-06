@@ -214,7 +214,7 @@ Net Patch Size vs Chunk Profile:
 ### Scientific Conclusion and Justification
 Rather than transmitting full 7 KB chunks for minor in-chunk mutations, encoding sub-chunk byte spans collapses the payload from 7,004 bytes down to **19 bytes** (a 99.73% payload reduction).
 
-**Architectural Justification:** The `PATCH` opcode in the Delta Recipe Manifest schema transmits a sub-chunk span delta rather than raw replacement bytes for modified chunks with $> 80\%$ similarity.
+**Architectural Justification:** The `PATCH` opcode in the Delta Recipe Manifest schema transmits a sub-chunk span delta rather than raw replacement bytes for modified chunks with > 80% similarity.
 
 ---
 
@@ -369,5 +369,5 @@ On degenerate low-entropy data where gear hash bitmasks are never naturally sati
 | **Modified Chunks** | Entirely new asset sections | Localized edits (e.g. 12 bytes in an 8 KB chunk) | Secondary `PATCH` span-delta shrinks payloads by 99.73% (Experiment 6). |
 | **File Structure** | Static file paths | Assets renamed or moved to different directories | Global Merkle chunk index matches chunks across files and directories (Experiment 7). |
 | **Manifest Overhead** | Tens of thousands of chunks in large archives | Manifest metadata exceeding payload savings | LEB128 variable-length integers reduce opcode overhead by 80% (Experiment 12). |
-| **Memory Budget** | Moderate file sizes | Multi-gigabyte archives exceeding RAM | Bounded 64 KB sliding stream windows cap peak heap memory at $\le 64\text{ MB}$ (Experiment 13). |
+| **Memory Budget** | Moderate file sizes | Multi-gigabyte archives exceeding RAM | Bounded 64 KB sliding stream windows cap peak heap memory at <= 64 MB (Experiment 13). |
 | **Throughput** | Standard execution speed | Performance bottlenecks in pure TypeScript | Optimized 32-bit gear table achieves 840+ MB/sec native throughput (Experiment 8). |

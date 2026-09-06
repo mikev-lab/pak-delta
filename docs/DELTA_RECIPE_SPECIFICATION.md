@@ -113,7 +113,9 @@ export interface InsertOpcode {
 ### 4.2 `PATCH` Opcode (Sub-Chunk Span Delta)
 - **Instruction:** Reads `length` baseline bytes from `sourceOffset`, and applies a secondary span delta read from `deltaOffset` (length `deltaLength`) in the manifest payload pool.
 - **Span Delta Format:**
-  $$\left[ \text{spanCount: uLEB128} \right] \left( \left[ \text{offset: uLEB128} \right] \left[ \text{length: uLEB128} \right] \left[ \text{replacementBytes} \right] \right)^*$$
+  ```text
+  [spanCount: uLEB128] ([offset: uLEB128] [length: uLEB128] [replacementBytes])*
+  ```
 - **Empirical Justification:** In Experiment 6, editing a 12-byte section of an 8 KB chunk generated a span delta of only 19 bytes, compared to transmitting the full 7,004 byte raw chunk.
 - **Integrity Assertion:** The patched chunk is hashed and asserted against `opcode.chunkHash`.
 

@@ -23,9 +23,11 @@ Content-Defined Chunking (CDC) resolves this by selecting cut points based on co
 `pak-delta` implements the FastCDC algorithm. Compared to traditional Rabin-Karp polynomial rolling hashes, FastCDC eliminates expensive multi-precision Galois field arithmetic and modulo operations, replacing them with a 32-bit gear lookup table and fast bit-manipulation primitives.
 
 ### 2.1 32-Bit Gear Hash Function
-A precomputed table `GEAR_TABLE` of 256 pseudo-random 32-bit integers is indexed by each incoming byte $B_i$:
+A precomputed table `GEAR_TABLE` of 256 pseudo-random 32-bit integers is indexed by each incoming byte `B[i]`:
 
-$$H_i = \left( (H_{i-1} \ll 1) + G[B_i] \right) \bmod 2^{32}$$
+```text
+H[i] = ((H[i-1] << 1) + GEAR_TABLE[B[i]]) mod 2^32
+```
 
 In JavaScript / TypeScript:
 ```typescript
@@ -37,18 +39,22 @@ In our empirical throughput benchmark (Experiment 8), this pure TypeScript imple
 ### 2.2 Dual-Threshold Normalized Chunking Masks
 To prevent extreme variance in chunk sizes and produce an exponential-like distribution around the target average size, FastCDC employs a **dual-threshold masking strategy**:
 
-1. **Phase 1: Minimum Bound ($L < S_{\text{min}}$)**
+1. **Phase 1: Minimum Bound (`Length < MIN_CHUNK_SIZE`)**
    - No cut condition is evaluated.
    - Incoming bytes update the gear hash accumulator without triggering a boundary.
-2. **Phase 2: Normal Cut Window ($S_{\text{min}} \le L < S_{\text{avg}}$)**
+2. **Phase 2: Normal Cut Window (`MIN_CHUNK_SIZE <= Length < AVG_CHUNK_SIZE`)**
    - Evaluates a strict bitmask condition:
-     $$\left( H_i \ \& \ M_{\text{strict}} \right) == 0$$
-   - A strict mask (e.g. 13 zero-bits for 8 KB nominal chunking) reduces premature cuts, encouraging chunks to grow toward $S_{\text{avg}}$.
-3. **Phase 3: Relaxed Cut Window ($S_{\text{avg}} \le L < S_{\text{max}}$)**
+     ```text
+     (hash & MASK_STRICT) === 0
+     ```
+   - A strict mask (e.g. 13 zero-bits for 8 KB nominal chunking) reduces premature cuts, encouraging chunks to grow toward the target average size.
+3. **Phase 3: Relaxed Cut Window (`AVG_CHUNK_SIZE <= Length < MAX_CHUNK_SIZE`)**
    - Evaluates a relaxed bitmask condition:
-     $$\left( H_i \ \& \ M_{\text{relaxed}} \right) == 0$$
+     ```text
+     (hash & MASK_RELAXED) === 0
+     ```
    - A relaxed mask (e.g. 11 zero-bits) increases the probability of finding a cut point, discouraging chunks from hitting the maximum ceiling.
-4. **Phase 4: Maximum Bound ($L \ge S_{\text{max}}$)**
+4. **Phase 4: Maximum Bound (`Length >= MAX_CHUNK_SIZE`)**
    - An unconditional cut is forced, bounding chunk size regardless of content.
 
 ```mermaid
@@ -119,9 +125,11 @@ Because `pak-delta` processes data in bounded 64 KB windows, chunk boundaries fr
 
 ### Carry-Over Ring Buffer Algorithm
 1. The chunker maintains a temporary carry-over buffer:
-   $$\text{carryBufferSize} \le \text{MAX\_CHUNK\_SIZE}$$
+   ```text
+   carryBufferSize <= MAX_CHUNK_SIZE
+   ```
 2. When the incoming 64 KB window ends without triggering a cut point, the trailing un-cut bytes are copied into the carry buffer.
-3. When the next 64 KB window arrives, the chunker prepends the carry buffer bytes and resumes rolling the gear hash from the exact accumulator state $H_{i-1}$.
+3. When the next 64 KB window arrives, the chunker prepends the carry buffer bytes and resumes rolling the gear hash from the exact accumulator state `hash`.
 4. Chunks are emitted without boundary drift or false cuts.
 
 ---
@@ -138,4 +146,4 @@ export interface ChunkDescriptor {
 }
 ```
 
-These fingerprints are indexed into the Global Container Merkle Index, enabling $O(1)$ constant-time lookup across the entire container archive.
+These fingerprints are indexed into the Global Container Merkle Index, enabling O(1) constant-time lookup across the entire container archive.
