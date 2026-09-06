@@ -1,0 +1,37 @@
+{
+  "name": "pak-delta",
+  "version": "0.1.0",
+  "description": "Archive-aware content-defined delta compression engine for game packfiles and container archives.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --project tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "test:compliance": "vitest run .agents/tests/compliance.test.ts"
+  },
+  "keywords": [
+    "delta-compression",
+    "packfile",
+    "fastcdc",
+    "content-defined-chunking",
+    "deflate",
+    "game-patching",
+    "zero-dependencies"
+  ],
+  "author": "mikev-lab",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

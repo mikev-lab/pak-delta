@@ -141,3 +141,33 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Agent Governance and Stealth Boundaries
+AGENTS.md
+.agents/
+*.prompt
+scratch/
+
+# Secrets and Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*token*
+credentials.json
+
+# Raw Binary Archives and Large Packfile Test Dumps
+fixtures/raw/
+fixtures/archives/
+*.pak
+*.bin
+*.iso
+*.assetbundle
+*.tar.gz
+
+# Local Tooling and OS Metadata
+.DS_Store
+.gemini/
+.claude/
