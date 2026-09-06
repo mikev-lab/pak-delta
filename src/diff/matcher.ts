@@ -12,6 +12,7 @@ import { computeSubChunkDelta } from "./subChunkDelta.js";
 import { inflateEntrySlice, inflateEntrySliceToBuffer } from "../archive/inflater.js";
 import { chunkStream } from "../chunker/fastcdc.js";
 import { deflateRaw } from "../archive/streamUtils.js";
+import { computeChunkHash } from "../chunker/fingerprint.js";
 
 /**
  * Compares two Uint8Array buffers for exact bit-for-bit equality.
@@ -63,6 +64,51 @@ export async function generateDeltaRecipe(
 
     const opcodes: RecipeOpcode[] = [];
     const sourceSlice = sourceSlicesByName.get(targetSlice.filename);
+
+    if (repackMode === "bit_preserving") {
+      const actualCompressed = await targetReader.readAt(targetSlice.dataOffset, targetSlice.compressedSize);
+      const chunkHash = await computeChunkHash(actualCompressed);
+
+      let copied = false;
+      if (sourceSlice && sourceSlice.compressedSize === targetSlice.compressedSize) {
+        const sourceCompressed = await sourceReader.readAt(sourceSlice.dataOffset, sourceSlice.compressedSize);
+        if (areBuffersEqual(sourceCompressed, actualCompressed)) {
+          opcodes.push({
+            type: "COPY",
+            sourceOffset: sourceSlice.dataOffset,
+            length: targetSlice.compressedSize,
+            chunkHash,
+          });
+          copied = true;
+        }
+      }
+
+      if (!copied) {
+        const payloadOffset = totalPayloadLength;
+        payloadParts.push(actualCompressed);
+        totalPayloadLength += actualCompressed.length;
+
+        opcodes.push({
+          type: "INSERT",
+          payloadOffset,
+          length: actualCompressed.length,
+          chunkHash,
+        });
+      }
+
+      entries.push({
+        filename: targetSlice.filename,
+        compressionMethod: targetSlice.compressionMethod,
+        repackMode,
+        uncompressedSize: targetSlice.uncompressedSize,
+        compressedSize: targetSlice.compressedSize,
+        crc32: targetSlice.crc32,
+        alignmentPadding: targetSlice.alignmentPadding,
+        opcodes,
+      });
+      continue;
+    }
+
     let cachedSourceUncompressed: Uint8Array | null = null;
 
     // Stream target chunks with payload emission enabled

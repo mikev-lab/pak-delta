@@ -36,6 +36,7 @@ export interface SyntheticEntrySpec {
   name: string;
   data: Uint8Array;
   compressed?: boolean; // Default true (method 8)
+  customCompressedData?: Uint8Array; // Allows testing non-standard compression (e.g. Level 9)
   useDataDescriptor?: boolean; // Default false (Bit 3)
 }
 
@@ -109,7 +110,7 @@ export async function buildSyntheticArchive(options: SyntheticArchiveBuildOption
     const method = isCompressed ? 8 : 0;
     const crc = computeCrc32(entry.data);
     const uncompressedSize = entry.data.length;
-    const compressedData = isCompressed ? await deflateRaw(entry.data) : entry.data;
+    const compressedData = entry.customCompressedData ?? (isCompressed ? await deflateRaw(entry.data) : entry.data);
     const compressedSize = compressedData.length;
     const useDescriptor = !!entry.useDataDescriptor;
 

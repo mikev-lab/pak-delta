@@ -20,5 +20,10 @@ export * from "./diff/merkleIndex.js";
 export * from "./diff/subChunkDelta.js";
 export * from "./diff/matcher.js";
 export * from "./diff/manifest.js";
+export * from "./repack/errors.js";
+export * from "./repack/crc32.js";
+export * from "./repack/compressor.js";
+export * from "./repack/writer.js";
+export * from "./repack/assembler.js";
 
 export const VERSION = "0.1.0";
